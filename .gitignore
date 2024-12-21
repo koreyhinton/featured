@@ -1,0 +1,33 @@
+# Emacs autosave files
+\#*\#
+.\#*
+*~
+
+# node
+node_modules/
+
+# backlog file. backed up separately
+doc/changetask/backlog
+
+# sed in-place backup files
+*.bak*
+
+# pngs
+*.png
+
+# Nightwatch environment specific variables:
+# 	ANDROID_HOME
+js/.env
+
+# Nightwatch
+js/nightwatch/examples/
+js/tests_output/
+
+# Nightwatch examples
+js/nightwatch/custom-assertions/elementHasCount.js
+js/nightwatch/custom-commands/angular/getElementsInList.js
+js/nightwatch/custom-commands/strictClick.js
+js/nightwatch/page-objects/google/search.js
+js/nightwatch/page-objects/google/searchResults.js
+js/nightwatch/templates/login.js
+js/nightwatch/templates/titleAssertion.js
