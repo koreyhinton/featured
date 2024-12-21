@@ -1,0 +1,159 @@
+#!/bin/bash
+
+src="${BASH_SOURCE[0]}"
+src_full=$(realpath "$src")
+src_dir="${src_full%/*}"
+
+. ns import ft_harness ft_version ft_snap
+
+# SET DEFAULTS
+: ${ft_snap:=-1}
+: ${ft_harness:="act.svg"}
+: ${ft_version:=main}
+
+# VALIDATE HARNESS DIRECTORY
+harn_dir="${src_dir}/${ft_harness}"
+if [[ ! -d "$harn_dir" ]]; then
+    echo "Error: Harness directory '${harn_dir}' not found." 1>&2
+    exit 1
+fi
+
+# VALIDATE COMMANDS
+for cmd in git npx grep; do
+    command -v $cmd >/dev/null 2>&1 || {
+        echo "Error: Command '$cmd' not found. Please install it." 1>&2
+        exit 1
+    }
+done
+
+# NAVIGATE TO WORKING DIRECTORY
+cd "${harn_dir}" || {
+    echo "Error: Unable to visit harness directory." 1>&2
+    exit 1
+}
+
+# perform all file i/o from ./ ($harn_dir)
+
+unset harn_dir  # ONLY USE ./ GOING FORWARD!
+
+# VALIDATE VERSIONS CSV
+if [[ ! -f "./versions.csv" || ! -s "./versions.csv" ]]; then
+    echo "Error: versions.csv is missing or empty in harness directory." 1>&2
+    exit 1
+fi
+
+# DETERMINE VERSION ORDINAL
+# version_ordinal determines the target version for non-snapshot mode or 
+# the maximum version to process in snapshot mode.
+version_ordinal=-1
+
+while IFS=',' read -r giturl gittag index ordinal; do
+    if [[ "$giturl" == "giturl" ]]; then
+        continue
+    fi
+    gitname=$(echo "$giturl" | cut -d '/' -f2)
+    if [[ "$gittag" == "$ft_version"  && "$ft_harness" == "$gitname" ]]; then
+        version_ordinal="$ordinal"
+        break
+    fi
+done < "./versions.csv"
+
+if [[ $version_ordinal -eq -1 ]]; then
+    echo "Error: Version '$ft_version' not found in versions.csv for harness '$ft_harness'." 1>&2
+    exit 1
+fi
+
+# MAKE DIRECTORIES
+
+mkdir -p ./results
+
+# IF NON-SNAPSHOT MODE -- RUN ONCE
+if [[ $ft_snap -eq 0 ]]; then
+
+    # prepare test run
+    if [[ -d "./sut" ]]; then
+        rm -rf "./sut"
+    fi
+    result_file="./results.${version_ordinal}"
+    if [[ -f "$result_file" ]]; then
+        rm "$result_file"
+    fi
+    gitname=$(echo "$giturl" | cut -d '/' -f2)
+    GIT_SSH_COMMAND="${GIT_SSH}" git clone "git@github.com:${giturl}.git" sut || {
+        echo "Error: Failed to clone repository: ${giturl}" 1>&2
+        exit 1
+    }
+    (cd sut && GIT_SSH_COMMAND="${GIT_SSH}" git checkout "$gittag") || {
+        echo "Error: Failed to checkout tag '$gittag' in repository '${giturl}'." 1>&2
+        exit 1
+    }
+    echo "$version_ordinal" > "./sut.version"  # readable by tests
+
+    # run tests
+    res=$(npx nightwatch --env="firefox" --tag="$ft_version")
+    passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
+    failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
+    errors=$(echo "$res" | grep -oP "Errors: \K\d+" || echo "0")
+    skipped=$(echo "$res" | grep -oP "Skipped: \K\d+" || echo "0")
+    # defaults
+    : ${passed:=0}
+    : ${failed:=0}
+    : ${errors:=0}
+    : ${skipped:=0}
+
+    echo "${ft_version},$passed,$failed,$errors,$skipped" >> "$result_file"
+    exit 0
+fi
+
+unset giturl gittag
+
+# SNAPSHOT MODE -- RUN EACH SNAPSHOT
+while IFS=',' read -r giturl gittag index ordinal; do
+
+    if [[ "$giturl" == "giturl" ]]; then
+        continue
+    fi
+
+    # prepare test run
+    if [[ -d "./sut" ]]; then
+        rm -rf "./sut"
+    fi
+    result_file="./results.${ordinal}"
+    if [[ -f "$result_file" ]]; then
+        rm "$result_file"
+    fi
+
+    gitname=$(echo "$giturl" | cut -d '/' -f2)
+
+    GIT_SSH_COMMAND="${GIT_SSH}" git clone "git@github.com:${giturl}.git" sut || {
+        echo "Error: Failed to clone repository: ${giturl}" 1>&2
+        exit 1
+    }
+    (cd sut && GIT_SSH_COMMAND="${GIT_SSH}" git checkout "$gittag") || {
+        echo "Error: Failed to checkout tag '$gittag' in repository '${giturl}'." 1>&2
+        exit 1
+    }
+    echo "$version_ordinal" > "./sut.version"  # readable by tests
+
+    # run tests
+    res=
+    if [[ $ordinal -le ${version_ordinal} ]]; then
+        # test older/stabler versions on firefox
+        res=$(npx nightwatch --env="firefox" --tag="$ft_version")
+    else
+        # test latest versions on chrome
+        res=$(npx nightwatch --env="chrome" --tag="$ft_version")
+    fi
+    passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
+    failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
+    errors=$(echo "$res" | grep -oP "Errors: \K\d+" || echo "0")
+    skipped=$(echo "$res" | grep -oP "Skipped: \K\d+" || echo "0")
+    # defaults
+    : ${passed:=0}
+    : ${failed:=0}
+    : ${errors:=0}
+    : ${skipped:=0}
+
+    echo "${ft_version},$passed,$failed,$errors,$skipped" >> "$result_file"
+
+done < "./versions.csv"
