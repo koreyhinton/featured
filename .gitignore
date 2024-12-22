@@ -24,10 +24,18 @@ js/nightwatch/examples/
 js/tests_output/
 
 # Nightwatch examples
-js/nightwatch/custom-assertions/elementHasCount.js
-js/nightwatch/custom-commands/angular/getElementsInList.js
-js/nightwatch/custom-commands/strictClick.js
-js/nightwatch/page-objects/google/search.js
-js/nightwatch/page-objects/google/searchResults.js
-js/nightwatch/templates/login.js
-js/nightwatch/templates/titleAssertion.js
+act.svg/nightwatch/custom-assertions/elementHasCount.js
+act.svg/nightwatch/custom-commands/angular/getElementsInList.js
+act.svg/nightwatch/custom-commands/strictClick.js
+act.svg/nightwatch/page-objects/google/search.js
+act.svg/nightwatch/page-objects/google/searchResults.js
+act.svg/nightwatch/templates/login.js
+act.svg/nightwatch/templates/titleAssertion.js
+act.svg/nightwatch/examples/
+
+# run output files
+act.svg/reports/
+act.svg/results.*
+act.svg/sut
+act.svg/sut.version
+act.svg/tests_output/

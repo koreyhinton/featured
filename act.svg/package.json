@@ -1,16 +1,15 @@
 {
-  "name": "js",
+  "name": "act.svg",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "nightwatch.conf.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Korey Hinton",
-  "license": "AGPL-3.0",
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "@nightwatch/mobile-helper": "^1.0.2",
     "nightwatch": "^3.9.0"
   }
 }

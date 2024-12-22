@@ -19,7 +19,7 @@ if [[ ! -d "$harn_dir" ]]; then
 fi
 
 # VALIDATE COMMANDS
-for cmd in git npx grep; do
+for cmd in git npx grep python3; do
     command -v $cmd >/dev/null 2>&1 || {
         echo "Error: Command '$cmd' not found. Please install it." 1>&2
         exit 1
@@ -41,6 +41,10 @@ if [[ ! -f "./versions.csv" || ! -s "./versions.csv" ]]; then
     echo "Error: versions.csv is missing or empty in harness directory." 1>&2
     exit 1
 fi
+
+# PROMPT TO ENSURE SERVER IS RUNNING
+
+read -p "Confirm the Python web server is started. Press enter to continue..." _
 
 # DETERMINE VERSION ORDINAL
 # version_ordinal determines the target version for non-snapshot mode or 
@@ -65,7 +69,7 @@ fi
 
 # MAKE DIRECTORIES
 
-mkdir -p ./results
+mkdir -p ./act.svg/reports  # Ensure the reports folder exists
 
 # IF NON-SNAPSHOT MODE -- RUN ONCE
 if [[ $ft_snap -eq 0 ]]; then
@@ -90,7 +94,7 @@ if [[ $ft_snap -eq 0 ]]; then
     echo "$version_ordinal" > "./sut.version"  # readable by tests
 
     # run tests
-    res=$(npx nightwatch --env="firefox" --tag="$ft_version")
+    res=$(npx nightwatch --verbose --env="chrome" --src=tests --git-tag="$ft_version")
     passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
     failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
     errors=$(echo "$res" | grep -oP "Errors: \K\d+" || echo "0")
@@ -138,11 +142,11 @@ while IFS=',' read -r giturl gittag index ordinal; do
     # run tests
     res=
     if [[ $ordinal -le ${version_ordinal} ]]; then
-        # test older/stabler versions on firefox
-        res=$(npx nightwatch --env="firefox" --tag="$ft_version")
+        # (todo: test older/stabler versions on firefox)
+        res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version")
     else
         # test latest versions on chrome
-        res=$(npx nightwatch --env="chrome" --tag="$ft_version")
+        res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version")
     fi
     passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
     failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
