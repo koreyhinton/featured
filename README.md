@@ -5,7 +5,7 @@ it is configured to test features for the act.svg diagram tool).
 
 ## snapshot mode
 
-By default the tests will run in snapshot mode, which ensures your your feature tests only assert correctly in the specified versions.
+By default the tests will run in snapshot mode, which ensures your feature tests only assert correctly in the specified versions.
 
 ## installation
 
