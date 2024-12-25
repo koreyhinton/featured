@@ -98,7 +98,7 @@ if [[ $ft_snap -eq 0 ]]; then
 
     # run tests
     echo "test ${version_index}. ${PWD}"
-    res=$(npx nightwatch --verbose --env="chrome" --src=tests --git-tag="$ft_version" --index="${version_index}")
+    res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version" --index="${version_index}")
     echo "$res"
     passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
     failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
