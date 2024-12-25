@@ -10,6 +10,9 @@ const argv = yargs(hideBin(process.argv)).argv;
 
 // Dynamically resolve the SUT directory and snapshots based on tag
 const tag = argv['git-tag'] || 'main';
+const index = argv['index'] || 'index.html';
+//process.env.TEST_INDEX = index;
+console.error("started configuration", index, tag);
 
 // Refer to the online docs for more details:
 // https://nightwatchjs.org/gettingstarted/configuration/
@@ -48,13 +51,13 @@ module.exports = {
   webdriver: {},
 
   test_workers: {
-    enabled: true
+    enabled: false//true
   },
 
   test_settings: {
     default: {
       disable_error_log: false,
-      launch_url: 'http://localhost:8000',
+      launch_url: `http://localhost:8000/${index}`,
 
       screenshots: {
         enabled: true,
@@ -63,7 +66,10 @@ module.exports = {
       },
 
       desiredCapabilities: {
-        browserName: 'chrome'
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+          args: ["window-size=1920,1080"],
+        },
       },
       
       webdriver: {
