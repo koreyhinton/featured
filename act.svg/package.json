@@ -1,15 +1,9 @@
 {
-  "name": "act.svg",
-  "version": "1.0.0",
-  "description": "",
-  "main": "nightwatch.conf.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.5"
   },
-  "keywords": [],
   "author": "Korey Hinton",
   "license": "AGPL-3.0",
-  "devDependencies": {
-    "nightwatch": "^3.9.0"
-  }
+  "scripts": {}
 }
