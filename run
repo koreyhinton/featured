@@ -98,7 +98,7 @@ if [[ $ft_snap -eq 0 ]]; then
 
     # run tests
     echo "test ${version_index}. ${PWD}"
-    res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version" --index="${version_index}")
+    res=$(GIT_TAG="$ft_version" INDEX="${version_index}" npx playwright test --project="chromium" --ui)
     echo "$res"
     passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
     failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
@@ -148,10 +148,10 @@ while IFS=',' read -r harness giturl gittag index ordinal; do
     res=
     if [[ $ordinal -le ${version_ordinal} ]]; then
         # (todo: test older/stabler versions on firefox)
-        res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version" --index="$index")
+        res=$(GIT_TAG="$ft_version" INDEX="$index" npx playwright test --ui --project="chromium")
     else
         # test latest versions on chrome
-        res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version" --index="$index")
+        res=$(GIT_TAG="$ft_version" INDEX="$index" npx playwright test --ui --project="chromium" --src=tests)
     fi
     passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
     failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")

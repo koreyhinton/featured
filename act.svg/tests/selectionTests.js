@@ -1,15 +1,14 @@
-const { versionAssert } = require('../../global');
-const assert = require('assert');
+import { test, expect } from '@playwright/test';
+// const { versionAssert } = require('../../global');
+import { versionAssert } from '../../global';
+// const assert = require('assert');
+import { promises as fs } from 'fs';
 
-function ensureOptionalClick(browser, selector, timeout) {
-
-    browser
-        .pause(timeout)
-        .isVisible({ selector: selector, suppressNotFoundErrors: true}, function(result) {
-            if (result.value) {
-                browser.click(selector, () => {});
-            }
-        });
+async function ensureOptionalClick(page, selector) {
+    const element = page.locator(selector);
+    if (await element.isVisible()) {
+        await element.click();
+    }
 }
 
 var emptySvg = `
@@ -17,39 +16,18 @@ var emptySvg = `
 </svg>
 `;
 
-function ensureEmptySvg(browser) {
-    const sutVersion = require('fs').readFileSync('./sut.version', 'utf-8').trim();
+async function ensureEmptySvg(page) {
+    const sutVersion = (await fs.readFile('./sut.version', 'utf-8')).trim();
     if (sutVersion <= 2) {  // v0.1
-        browser.setValue('#svgFullTextarea', emptySvg);
+        await page.locator('#svgFullTextarea').fill(emptySvg);
     } else {
-        browser
-            .perform(function() {
-                const actions = this.actions({async: false});
-                return actions
-                    .move({x: 751, y: 100})
-                    .press()
-                    .move({x: 751+745, y: 100+725})
-                    .release()
-                    .perform()
-            });
-        browser.pause(1000);
-        // browser.keys([browser.Keys.CONTROL, "x"]);
-        browser.execute(`window.manageKeyDownEvent({key:'x',ctrlKey:true});`);
+        await page.mouse.move(751, 100);
+        await page.mouse.down();
+        await page.mouse.move(751+745, 100+725);
+        await page.mouse.up();
+        await page.keyboard.press('Control+x');
     }
-    browser.pause(1000);
 }
-
-module.exports = {
-    beforeEach: function(browser) {
-        browser.url(browser.launchUrl);
-        ensureEmptySvg(browser);
-        ensureOptionalClick(browser, 'button#buttonStart', 1000);
-        browser.pause(1000); // ensures 'rect' is onscreen
-    },
-    afterEach: function(browser, done) {
-        done();
-    }
-};
 
 var rectSvg = `
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="750" height="750" viewBox="0,0,750,750">
@@ -57,67 +35,53 @@ var rectSvg = `
 </svg>
 `;
 
-function ensureRect(browser) {
-    browser.isVisible({ selector: "rect", suppressNotFoundErrors: true}, function(result) {
-        if (result.value) return;
-        const sutVersion = require('fs').readFileSync('./sut.version', 'utf-8').trim();
-        if (sutVersion <= 1) {  // v0.0
-            browser
-                .sendKeys('body', '4') // draw rect mode
-                .pause(1000)
-                .perform(function() {
-                    const actions = this.actions({async: false});
-                    return actions
-                        .click({x: 751, y: 350})
-                        .click({x: 800, y: 500})
-                        .perform();
-                })
-                .pause(1000)
-                .sendKeys('body', '0') // back to selection mode
-                .pause(1000);
-        } else {
-            browser
-                .sendKeys('body', '4') // draw rect mode
-                .pause(1000)
-                .perform(function() {
-                    const actions = this.actions({async: false});
-                    return actions
-                        .move({x: 751, y: 350})
-                        .press()
-                        .move({x: 800, y: 500})
-                        .release()
-                        .perform();
-                })
-                .pause(1000)
-                .sendKeys('body', '0') // back to selection mode
-                .pause(1000);
-        }
-    });
+async function ensureRect(page) {
+    const element = page.locator("rect");
+    if (await element.isVisible()) {
+        return;
+    }
+
+    const sutVersion = (await fs.readFile('./sut.version', 'utf-8')).trim();
+    await page.keyboard.press('4'); // rect mode
+    if (sutVersion <= 1) {  // v0.0
+
+        await page.mouse.move(751, 350);
+        await page.mouse.down();
+        await page.mouse.up();
+        await page.mouse.move(800, 500);
+        await page.mouse.down();
+        await page.mouse.up();
+
+    } else {
+        await page.mouse.move(751, 350);
+        await page.mouse.down();
+        await page.mouse.move(800, 500);
+        await page.mouse.up();
+    }
+    await page.keyboard.press('4'); // select mode
 }
 
-describe('Diagram Selection Tests', function() {
-    it('should select rectangle', function(browser) {
+
+test.describe('Diagram Selection Tests', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+        await ensureEmptySvg(page);
+        await ensureOptionalClick(page, 'button#buttonStart');
+    });
+
+
+    test('should select rectangle', async ({page}) => {
         const start = 0;
         const end = null;
 
-        ensureRect(browser);
+        await ensureRect(page);
 
-        browser
-            .perform(function() {
-                const actions = this.actions({async: false});
-                return actions
-                    .click(browser.element.find('rect'))
-                    .perform(); // Perform all actions
-            })
-            .pause(1000);
+        await page.locate('rect')
+            .click();
 
-        versionAssert.onlyFeaturedInVersionsAssert(browser, start, end, () => {
-            browser.assert.attributeContains('rect', 'stroke', '#CAFFB5');
+        versionAssert.onlyFeaturedInVersionsAssert(expect, start, end, async () => {
+            await expect(page.locate('rect'))
+                .toHaveAttribute('stroke', '#CAFFB5')
         });
-
-        browser
-            .pause(2000)
-            .end();
-
     });
 });

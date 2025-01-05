@@ -3,7 +3,7 @@
 
 module.exports = {
     versionAssert: {
-            onlyFeaturedInVersionsAssert: function(browser, start, end, assertionCallback) {
+            onlyFeaturedInVersionsAssert: function(expect, start, end, assertionCallback) {
             const sutVersion = require('fs').readFileSync('./sut.version', 'utf-8').trim();
             let trueForCurrentVersion = false;
 
@@ -16,10 +16,9 @@ module.exports = {
 
             const isFeaturedInCurrentVersion = (sutVersion >= start || sutVersion === null) && (sutVersion <= end || sutVersion === null);
 
-            browser.assert.equal(
-                (trueForCurrentVersion && isFeaturedInCurrentVersion) || (!trueForCurrentVersion && !isFeaturedInCurrentVersion),
-                true
-            ); // Assert that the condition holds
+            expect(
+                (trueForCurrentVersion && isFeaturedInCurrentVersion) || (!trueForCurrentVersion && !isFeaturedInCurrentVersion)
+            ).toBe(true); // Assert that the condition holds
         }
     }
 };

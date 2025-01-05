@@ -18,6 +18,10 @@ ns-clone ft git@github.com:koreyhinton/featured
 Act.svg example.
 
 ```sh
+export NS_PATH="${PWD}:${NS_PATH}"; ft_version=c702432 ft_snap=0 && nvm use 18 && . ns run run
+```
+
+```sh
 
 # on one shell, run the http server:
 cd act.svg/sut
