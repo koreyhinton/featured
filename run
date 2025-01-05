@@ -77,9 +77,8 @@ read -p "Confirm the Python web server is started. Press enter to continue..." _
 # 2) and assign: src_dir="${PWD}"
 mkdir -p "${src_dir}/logs/selenium"
 sel_log_file="${src_dir}/logs/selenium/stdout-latest.txt"
-sel_port=4444
 sel_chromedriver=$(which chromedriver)
-echo "starting selenium server (port ${sel_port}), server log: ${sel_log_file}"
+echo "starting selenium server (port 4444), server log: ${sel_log_file}"
 # java -Dwebdriver.chrome.driver=${sel_chromedriver} -jar "${src_dir}/selenium-server-4.27.0.jar" standalone --host 0.0.0.0 --port 4444 1> "${sel_log_file}" 2>&1 &
 java -jar "${src_dir}/selenium-server-4.27.0.jar" standalone 1> "${sel_log_file}" 2>&1 &
 sel_pid=$!
@@ -93,9 +92,10 @@ sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
     "firstMatch": [{}]
   }
 }
-' http://localhost:${sel_port}/session | jq -r '.value.sessionId')
+' http://localhost:4444/session | jq -r '.value.sessionId')
 unset sel_log_file sel_chromedriver
 sleep 4
+# todo: move this to test file in place of npx calls
 TEST_URL="http://localhost:8000/www/svg/ActSvg.html"
 curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
   -d "{\"url\": \"$TEST_URL\"}" \
