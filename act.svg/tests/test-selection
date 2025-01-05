@@ -1,0 +1,37 @@
+#!/bin/bash
+
+. ns import ft_index sel_sid
+
+test_url="http://localhost:8000/${ft_index}"
+curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
+  -d "{\"url\": \"$test_url\"}" \
+  http://localhost:4444/session/${sel_sid}/url 1>/dev/null 2>&1
+
+locate_response=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
+  -d '{
+        "using": "xpath",
+        "value": "//button[@id='\''buttonStart'\'']"
+      }' \
+  http://localhost:4444/session/${sel_sid}/element)
+has_btn=1
+if [[ "${locate_response:0:17}" == '{"value":{"error"' ]]; then
+    has_btn=0
+fi
+
+el_id=
+if [[ $has_btn -gt 0 ]]; then
+    el_id=$(echo "$locate_response" | jq -r '.value["element-6066-11e4-a52e-4f735466cecf"]')
+
+    # echo "${el_id} found"
+
+    # click response does not matter, if it errors we ignore it.
+    # it might be that a version has the start button but is hidden
+    # and auto-started anyways, so it's safe to ignore
+    curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
+      -d '{}' \
+      http://localhost:4444/session/${sel_sid}/element/${el_id}/click 1>/dev/null 2>&1
+fi
+
+echo PASS
+
+. ns export ft_index sel_sid

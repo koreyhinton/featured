@@ -95,11 +95,15 @@ sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
 ' http://localhost:4444/session | jq -r '.value.sessionId')
 unset sel_log_file sel_chromedriver
 sleep 4
-# todo: move this to test file in place of npx calls
-TEST_URL="http://localhost:8000/www/svg/ActSvg.html"
+
 curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
-  -d "{\"url\": \"$TEST_URL\"}" \
-  http://localhost:4444/session/${sel_sid}/url
+  -d '{
+        "width": 1920,
+        "height": 1080
+      }' \
+  http://localhost:4444/session/${sel_sid}/window/rect
+
+sleep 4
 
 
 # DETERMINE VERSION ORDINAL
@@ -154,7 +158,16 @@ if [[ $ft_snap -eq 0 ]]; then
 
     # run tests
     echo "test ${version_index}. ${PWD}"
-    res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version" --index="${version_index}")
+    ft_index=${version_index}
+    for t in ${src_dir}/act.svg/tests/test*
+    do
+        if [[ "$t" =~ '~' ]]; then
+            continue
+        fi
+        . ns run "$t"
+    done
+    . ns delete ft_index
+    # res=$(npx nightwatch --env="chrome" --src=tests --git-tag="$ft_version" --index="${version_index}")
     echo "$res"
     passed=$(echo "$res" | grep -oP "Tests passed: \K\d+" || echo "0")
     failed=$(echo "$res" | grep -oP "Tests failed: \K\d+" || echo "0")
