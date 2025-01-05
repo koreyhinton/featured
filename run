@@ -19,7 +19,7 @@ if [[ ! -d "$harn_dir" ]]; then
 fi
 
 # VALIDATE COMMANDS
-for cmd in git npx grep python3; do
+for cmd in git npx grep python3 jq chromium chromedriver; do
     command -v $cmd >/dev/null 2>&1 || {
         echo "Error: Command '$cmd' not found. Please install it." 1>&2
         exit 1
@@ -42,9 +42,65 @@ if [[ ! -f "./versions.csv" || ! -s "./versions.csv" ]]; then
     exit 1
 fi
 
+# VALIDATE SELENIUM SERVER
+
+if [[ ! -e "${src_dir}/selenium-server-4.27.0.jar" ]]; then
+    echo "Error: the selenium server jar file (selenium-server-4.27.0.jar) must be placed inside directory: ${src_dir}"
+    exit 1
+fi
+
 # PROMPT TO ENSURE SERVER IS RUNNING
 
 read -p "Confirm the Python web server is started. Press enter to continue..." _
+
+# CHROME DRIVER
+# uncomment to try out the chrome driver directly
+
+# chromedriver --port=9515 --disable-dev-shm-usage --no-sandbox --headless
+# curl --request POST \
+#   --url http://localhost:9515/session \
+#   --header 'Content-Type: application/json; charset=utf-8' \
+#   --data '{
+#   "capabilities": {
+# 		"alwaysMatch": {
+# 			"browserName": "chrome"
+# 		},
+#     "firstMatch": [{}]
+#   }
+# }
+# '
+
+# START SELENIUM SERVER
+
+# for testing this code block separately in a shell, first do these steps:
+# 1) browse to featured dir
+# 2) and assign: src_dir="${PWD}"
+mkdir -p "${src_dir}/logs/selenium"
+sel_log_file="${src_dir}/logs/selenium/stdout-latest.txt"
+sel_port=4444
+sel_chromedriver=$(which chromedriver)
+echo "starting selenium server (port ${sel_port}), server log: ${sel_log_file}"
+# java -Dwebdriver.chrome.driver=${sel_chromedriver} -jar "${src_dir}/selenium-server-4.27.0.jar" standalone --host 0.0.0.0 --port 4444 1> "${sel_log_file}" 2>&1 &
+java -jar "${src_dir}/selenium-server-4.27.0.jar" standalone 1> "${sel_log_file}" 2>&1 &
+sel_pid=$!
+sleep 4
+sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
+  -d '{
+  "capabilities": {
+		"alwaysMatch": {
+			"browserName": "chrome"
+		},
+    "firstMatch": [{}]
+  }
+}
+' http://localhost:${sel_port}/session | jq -r '.value.sessionId')
+unset sel_log_file sel_chromedriver
+sleep 4
+TEST_URL="http://localhost:8000/www/svg/ActSvg.html"
+curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
+  -d "{\"url\": \"$TEST_URL\"}" \
+  http://localhost:4444/session/${sel_sid}/url
+
 
 # DETERMINE VERSION ORDINAL
 # version_ordinal determines the target version for non-snapshot mode or 
