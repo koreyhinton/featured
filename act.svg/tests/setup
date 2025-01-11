@@ -48,4 +48,9 @@ se_x2=801
 se_y2=201
 . ns run se-actions-dragged-click
 
+# select mode
+se_keys="0"
+. ns run se-actions-keys
+sleep 1
+
 . ns export sel_sid ft_index

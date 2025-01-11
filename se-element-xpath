@@ -15,7 +15,7 @@ read -r -d '' body <<EOF
 }
 EOF
 locate_response=$(curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/element 2>/dev/null)
-# echo "$locate_response"
+echo "$locate_response"
 se_eid=
 se_found=0
 if [[ "${locate_response:0:17}" == '{"value":{"error"' ]]; then

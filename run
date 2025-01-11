@@ -98,8 +98,8 @@ sleep 1
 
 curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
   -d '{
-        "width": 1920,
-        "height": 1080
+        "width": 1600,
+        "height": 1000
       }' \
   http://localhost:4444/session/${sel_sid}/window/rect
 

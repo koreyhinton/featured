@@ -6,7 +6,18 @@ x=$se_x
 y=$se_y
 x2=$se_x2
 y2=$se_y2
-echo "$x,$y,$x2,$y2"
+# a=$((x+1))
+# b=$y
+# x2=$((x+100)) # $se_x2
+# y2=$((y+100)) # $se_y2
+# c=$((x2+1))
+# d=$y2
+# echo "$x,$y,$x2,$y2"
+
+se_xpath="//*[name()='body']"
+. ns run se-element-xpath
+. ns run se-element-click
+sleep 1
 
 base_url=http://localhost:4444/session
 
@@ -14,55 +25,63 @@ read header1 <<EOF
 Content-Type: application/json; charset=utf-8
 EOF
 
+# for some reason, the act.svg drawing code needs to first detect a small change in movement
+# nearby the starting point and then the larger change for it to determine that it is was
+# a dragged click situation (and not a single click). a,b vars will be used for this small change
+a=$((x-1))
+b=$((y-1))
+
+sleep 1
 read -r -d '' body <<EOF
 {
     "actions": [
         {
             "type": "pointer",
             "id": "mouse",
+            "parameters": {"pointerType": "mouse"},
             "actions":[
+                { "type": "pause", "duration": 100 },
                 {
                     "type":"pointerMove",
+                    "origin": "viewport",
                     "x": $x,
                     "y": $y,
-                    "duration": 200
+                    "duration": 250
                 },
-                {
-                    "type": "pause",
-                    "duation": 200
-                },
+                { "type": "pause", "duration": 100 },
                 {
                     "type":"pointerDown",
-                    "button": 0,
-                    "x": $x,
-                    "y": $y
+                    "button": 0
                 },
+                { "type": "pause", "duration": 100 },
+                { "type": "pause", "duration": 100 },
                 {
                     "type":"pointerMove",
-                    "x": $x2,
-                    "y": $y2
+                    "origin": "viewport",
+                    "x": $a,
+                    "y": $b,
+                    "duration": 100
                 },
+                { "type": "pause", "duration": 100 },
                 {
-                    "type": "pause",
-                    "duation": 200
-                },
-                {
-                    "type":"pointerUp",
-                    "button": 0,
+                    "type":"pointerMove",
+                    "origin": "viewport",
                     "x": $x2,
                     "y": $y2,
-                    "duration": 200
+                    "duration": 250
                 },
+                { "type": "pause", "duration": 100 },
                 {
-                    "type": "pause",
-                    "duation": 200
-                }
+                    "type":"pointerUp",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 }
             ]
         }
     ]
 }
 EOF
-
 curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions # 1>/dev/null 2>&1
+sleep 1
 
 . ns export se_sid

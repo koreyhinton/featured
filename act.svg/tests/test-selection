@@ -2,8 +2,11 @@
 
 . ns import ft_index sel_sid
 
-. ns run setup
+# TODO: pass in the ft_version to choose which kind of drawing to make (click-drag or two clicks)
 
+# TEST ONE - TEST RECTANGLE CAN BE SELECTED
+
+. ns run setup
 
 se_sid="$sel_sid"
 
@@ -12,15 +15,38 @@ se_keys="3"
 . ns run se-actions-keys
 sleep 1
 
-# draw rect
+# TODO: draw rect in previous versions
 # . ns run se-actions-diagonal-clicks
+
+# draw rect
 se_x=771
 se_y=171
-se_x2=se_x; ((se_x2+=400));
-se_y2=se_y; ((se_y2+=400));
+se_x2=971
+se_y2=371
 . ns run se-actions-dragged-click
 
-# todo: still need to add in the selection code and test
-echo FAIL
+# select mode
+se_keys="0"
+. ns run se-actions-keys
+sleep 1
+
+
+# act
+se_x=855
+se_y=275
+. ns run se-actions-click
+sleep 1
+
+se_xpath="//*[name()='rect']"
+. ns run se-element-xpath
+se_attr="stroke"
+. ns run se-element-attribute
+
+# TODO: change to a version assert (once implemented)
+if [[ "$se_val" == "#CAFFB5" ]]; then
+    echo PASS
+else
+    echo FAIL
+fi
 
 . ns export ft_index sel_sid
