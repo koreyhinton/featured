@@ -2,36 +2,25 @@
 
 . ns import ft_index sel_sid
 
-test_url="http://localhost:8000/${ft_index}"
-curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
-  -d "{\"url\": \"$test_url\"}" \
-  http://localhost:4444/session/${sel_sid}/url 1>/dev/null 2>&1
+. ns run setup
 
-locate_response=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
-  -d '{
-        "using": "xpath",
-        "value": "//button[@id='\''buttonStart'\'']"
-      }' \
-  http://localhost:4444/session/${sel_sid}/element)
-has_btn=1
-if [[ "${locate_response:0:17}" == '{"value":{"error"' ]]; then
-    has_btn=0
-fi
 
-el_id=
-if [[ $has_btn -gt 0 ]]; then
-    el_id=$(echo "$locate_response" | jq -r '.value["element-6066-11e4-a52e-4f735466cecf"]')
+se_sid="$sel_sid"
 
-    # echo "${el_id} found"
+# rect mode
+se_keys="3"
+. ns run se-actions-keys
+sleep 1
 
-    # click response does not matter, if it errors we ignore it.
-    # it might be that a version has the start button but is hidden
-    # and auto-started anyways, so it's safe to ignore
-    curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
-      -d '{}' \
-      http://localhost:4444/session/${sel_sid}/element/${el_id}/click 1>/dev/null 2>&1
-fi
+# draw rect
+# . ns run se-actions-diagonal-clicks
+se_x=771
+se_y=171
+se_x2=se_x; ((se_x2+=400));
+se_y2=se_y; ((se_y2+=400));
+. ns run se-actions-dragged-click
 
-echo PASS
+# todo: still need to add in the selection code and test
+echo FAIL
 
 . ns export ft_index sel_sid

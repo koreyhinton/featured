@@ -82,7 +82,7 @@ echo "starting selenium server (port 4444), server log: ${sel_log_file}"
 # java -Dwebdriver.chrome.driver=${sel_chromedriver} -jar "${src_dir}/selenium-server-4.27.0.jar" standalone --host 0.0.0.0 --port 4444 1> "${sel_log_file}" 2>&1 &
 java -jar "${src_dir}/selenium-server-4.27.0.jar" standalone 1> "${sel_log_file}" 2>&1 &
 sel_pid=$!
-sleep 4
+sleep 1
 sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
   -d '{
   "capabilities": {
@@ -94,7 +94,7 @@ sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
 }
 ' http://localhost:4444/session | jq -r '.value.sessionId')
 unset sel_log_file sel_chromedriver
-sleep 4
+sleep 1
 
 curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
   -d '{
@@ -103,7 +103,7 @@ curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
       }' \
   http://localhost:4444/session/${sel_sid}/window/rect
 
-sleep 4
+sleep 1
 
 
 # DETERMINE VERSION ORDINAL

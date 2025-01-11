@@ -31,3 +31,29 @@ python3 -m http.server
 ft_version=c702432
 ft-run
 ```
+
+## legacy run
+
+```sh
+# legacy syntax to run if not cloned with ns-clone
+export NS_PATH="${PWD}:${PWD}/act.svg/tests:${NS_PATH}"
+ft_version=c702432 ft_snap=0; . ns run run
+ft_version=mainb/v0.0 ft_snap=0; . ns run run
+ft_version=mainb/v0.1 ft_snap=0; . ns run run
+ft_version=mainb/v0.2 ft_snap=0; . ns run run
+ft_version=mainb/v0.4 ft_snap=0; . ns run run
+
+# on another shell run:
+cd act.svg/sut
+python3 -m http.server
+```
+
+## selenium server notes
+
+When sending requests, the api gives vague errors if you don't do the following:
+- give a body, even if one isn't needed, just use an empty one, ie: `curl -d '{}' ...`
+- ensure there are no trailing commas (ie, remove this comma: `"actions" [ {...}, ]`)
+- if the json attributes aren't working, then start from no attributes to get specific error
+  messages of an attribute it expects
+
+

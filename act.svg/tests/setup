@@ -1,0 +1,51 @@
+#!/bin/bash
+
+. ns import sel_sid ft_index
+
+# GO TO CURRENT CODE VERSION INDEX PAGE
+se_sid="$sel_sid"
+se_url="http://localhost:8000/${ft_index}"
+. ns run se-session-url
+sleep 1
+
+# LOCATE TEXTAREA AND CLEAR IT
+se_xpath="//textarea[@id='svgFullTextarea']"
+. ns run se-element-xpath
+. ns run se-element-clear
+sleep 1
+
+# SET EMPTY SVG VALUE
+se_xpath="//textarea[@id='svgFullTextarea']"
+. ns run se-element-xpath
+read -r -d '' se_text <<EOF
+<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'></svg>
+EOF
+. ns run se-element-value
+sleep 1
+
+# force the on-change
+se_xpath="//svg"
+. ns run se-element-xpath
+. ns run se-element-click
+sleep 1
+
+# LOCATE START BUTTON AND CLICK IT
+se_xpath="//button[@id='buttonStart']"
+. ns run se-element-xpath
+. ns run se-element-click
+sleep 1
+
+# force the on-change
+se_xpath="//*[name()='svg']"  # /*[name()='rect']"
+. ns run se-element-xpath
+. ns run se-element-click
+sleep 1
+
+# remove svg textarea focus:
+se_x=751
+se_y=151
+se_x2=801
+se_y2=201
+. ns run se-actions-dragged-click
+
+. ns export sel_sid ft_index
