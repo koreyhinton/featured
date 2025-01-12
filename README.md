@@ -1,6 +1,6 @@
 # Featured
 
-This featured repository is a container for end-to-end (nightwatchjs) test harnesses (currently
+This featured repository is a container for end-to-end (selenium grid webdriver) test harnesses (currently
 it is configured to test features for the act.svg diagram tool).
 
 ## snapshot mode
