@@ -14,13 +14,24 @@ se_xpath="//textarea[@id='svgFullTextarea']"
 . ns run se-element-clear
 sleep 1
 
-# SET EMPTY SVG VALUE
+# SET (EMPTY OR RECT) SVG VALUE
 se_xpath="//textarea[@id='svgFullTextarea']"
 . ns run se-element-xpath
-read -r -d '' se_text <<EOF
+(
+    ft_start=
+    ft_end=devbox
+    . ns run version-between
+    if [[ $ft_found -eq 1 ]]; then
+        read -r -d '' se_text <<EOF
+<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'><rect x='71' y='101' rx='0' ry='0' width='200' height='200' stroke='black' fill='transparent' stroke-width='1'/></svg>
+EOF
+    else
+        read -r -d '' se_text <<EOF
 <svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'></svg>
 EOF
-. ns run se-element-value
+    fi
+    . ns run se-element-value
+)
 sleep 1
 
 # force the on-change

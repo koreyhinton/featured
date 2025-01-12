@@ -51,6 +51,6 @@ read -r -d '' body <<EOF
 }
 EOF
 # echo "$body"
-curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions # 1>/dev/null 2>&1
+curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions 1>/dev/null 2>&1
 
 . ns export se_sid

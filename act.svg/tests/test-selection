@@ -1,10 +1,9 @@
 #!/bin/bash
 
-. ns import ft_index sel_sid
-
-# TODO: pass in the ft_version to choose which kind of drawing to make (click-drag or two clicks)
+. ns import ft_harness ft_index sel_sid
 
 # TEST ONE - TEST RECTANGLE CAN BE SELECTED
+test="RECTANGLE CAN BE SELECTED"
 
 . ns run setup
 
@@ -15,15 +14,30 @@ se_keys="3"
 . ns run se-actions-keys
 sleep 1
 
-# TODO: draw rect in previous versions
-# . ns run se-actions-diagonal-clicks
-
 # draw rect
 se_x=771
 se_y=171
 se_x2=971
 se_y2=371
-. ns run se-actions-dragged-click
+(
+    ft_start=
+    ft_end=v0.0
+    . ns run version-between
+    if [[ $ft_found -gt 0 ]]; then
+        # two-click draw
+        ft_start=v0.0
+        ft_end=v0.0
+        . ns run version-between
+        if [[ $ft_found -gt 0 ]]; then
+            # only click-draw rect if version is >= v0.0
+            # as initial (devbox) version only supports selection
+            . ns run se-actions-diagonal-clicks
+        fi
+    else
+        # click-and-drag draw
+        . ns run se-actions-dragged-click
+    fi
+)
 
 # select mode
 se_keys="0"
@@ -42,11 +56,21 @@ se_xpath="//*[name()='rect']"
 se_attr="stroke"
 . ns run se-element-attribute
 
-# TODO: change to a version assert (once implemented)
+# TEST ONE - FEATURED IN VERSION(S) ASSERT
+ft_start=
+ft_end=
+ft_assert=0
+echo "val: $se_val"
 if [[ "$se_val" == "#CAFFB5" ]]; then
-    echo PASS
-else
-    echo FAIL
+    ft_assert=1
 fi
-
-. ns export ft_index sel_sid
+. ns run version-assert
+dots=".............................................."
+test="${ft_sut_v} TEST (${ft_status}) ${test}"
+dotl=${#dots}; testl=${#test}; ((dotl-=testl)); dots="${dots:0:$dotl}"; test="${test}.${dots}."
+if [[ $ft_assert -eq 1 ]]; then
+    echo "${test}...PASS"
+else
+    echo "${test}...FAIL"
+fi
+. ns export ft_harness ft_index sel_sid
