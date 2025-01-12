@@ -1,0 +1,56 @@
+#!/bin/bash
+
+. ns import se_sid se_eid se_keys
+
+base_url=http://localhost:4444/session
+
+read header1 <<EOF
+Content-Type: application/json; charset=utf-8
+EOF
+
+key_actions=
+let n=${#se_keys}-1;
+for i in $(seq 0 $n)
+do
+    ch=${se_keys:$i:1}
+    read -r -d '' action <<EOF
+{
+    "type": "keyDown",
+    "value": "$ch",
+    "duration": 500
+},
+{ "type": "pause", "duration": 100 },
+{
+    "type": "keyUp",
+    "value": "$ch",
+    "duration": 500
+}
+EOF
+
+    if [[ -z "$key_actions" ]]; then
+        key_actions="${action}"
+    else
+        key_actions="${key_actions},${action}"
+    fi
+done
+
+# echo "key actions: ${key_actions}"
+
+read -r -d '' body <<EOF
+{
+    "actions": [
+        {
+            "type": "key",
+            "id": "keyboard",
+            "actions": [
+                ${key_actions},
+                { "type": "pause", "duration": 100 }
+            ]
+        }
+    ]
+}
+EOF
+# echo "$body"
+curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions 1>/dev/null 2>&1
+
+. ns export se_sid

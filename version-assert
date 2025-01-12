@@ -1,0 +1,80 @@
+#!/bin/bash
+
+. ns import ft_harness ft_start ft_end ft_assert
+
+src="${BASH_SOURCE[0]}"
+src_full=$(realpath "$src")
+src_dir="${src_full%/*}"
+
+if [[ -z "$ft_assert" ]]; then
+    ft_assert=0
+    echo "Error: unable to assert feature should be present in current version without a ft_assert variable flag being set" 1>&2
+    exit 1
+fi
+
+current_ord=$(cat "${src_dir}/${ft_harness}/sut.version")
+ft_sut_v=
+ft_status="not featured"
+
+min_ord=
+max_ord=
+ft_start_ord=
+ft_end_ord=
+while IFS=',' read -r harness giturl gittag index version ordinal; do
+    if [[ "$harness" != "$ft_harness" || "harness" == "$harness" ]]; then
+        continue
+    fi
+
+    if [[ -n "$ft_start" && "$version" == "$ft_start" ]]; then
+        ft_start_ord=$ordinal 
+    fi
+
+    if [[ -n "$ft_end" && "$version" == "$ft_end" ]]; then
+        ft_end_ord=$ordinal
+    fi
+
+    if [[ -z "$min_ord" ]]; then
+        min_ord=$ordinal
+        if [[ -z "$ft_start" ]]; then
+            # an unset ft_start means the feature was present since first version
+            ft_start_ord=$ordinal
+        fi
+    fi
+    max_ord=$ordinal
+    if [[ -z "$ft_end" ]]; then
+        # an unset ft_end means the feature never ended (and is in the latest version)
+        ft_end_ord=$max_ord
+    fi
+
+    if [[ -n "$current_ord" && $current_ord -eq $ordinal ]]; then
+        ft_sut_v="$version"
+    fi
+
+done < "${src_dir}/${ft_harness}/versions.csv"
+
+if [[ -z "$min_ord" || -z "$max_ord" || -z "$ft_start_ord" || -z "$ft_end_ord" ]]; then
+    echo
+    echo "${min_ord}|${max_ord}|${ft_start_ord}|${ft_end_ord}"
+    ft_assert=0
+    echo "Error: unable to find harness (${ft_harness}) versions (file: ${src_dir}/${ft_harness}/versions.csv)" 1>&2
+    exit 1
+elif [[ -z "$current_ord" ]]; then
+    ft_assert=0
+    echo "Error: unable to find harness's (${ft_harness}) current version in file (file: ${src_dir}/${ft_harness}/sut.version)" 1>&2
+    exit 1
+fi
+
+featured_in_current_version=0
+if [[ $current_ord -ge $ft_start_ord && $current_ord -le $ft_end_ord ]]; then
+    featured_in_current_version=1
+    ft_status=featured
+fi
+
+if [[ $featured_in_current_version -eq $ft_assert ]]; then
+    ft_assert=1
+else
+    ft_assert=0
+fi
+
+. ns export ft_harness ft_start ft_end ft_assert ft_status ft_sut_v
+

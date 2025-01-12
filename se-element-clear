@@ -1,0 +1,13 @@
+#!/bin/bash
+
+. ns import se_sid se_eid
+
+base_url=http://localhost:4444/session
+
+read header1 <<EOF
+Content-Type: application/json; charset=utf-8
+EOF
+
+curl -s -H "$header1" -d '{}' ${base_url}/${se_sid}/element/${se_eid}/clear 1>/dev/null 2>&1
+
+. ns export se_sid

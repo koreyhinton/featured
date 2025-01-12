@@ -1,0 +1,81 @@
+#!/bin/bash
+
+. ns import se_sid se_eid se_x se_y se_x2 se_y2
+
+x=$se_x
+y=$se_y
+x2=$se_x2
+y2=$se_y2
+
+base_url=http://localhost:4444/session
+
+read header1 <<EOF
+Content-Type: application/json; charset=utf-8
+EOF
+
+a=$((x-1))
+b=$((y-1))
+
+sleep 1
+read -r -d '' body <<EOF
+{
+    "actions": [
+        {
+            "type": "pointer",
+            "id": "mouse",
+            "parameters": {"pointerType": "mouse"},
+            "actions":[
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerMove",
+                    "origin": "viewport",
+                    "x": $x,
+                    "y": $y,
+                    "duration": 250
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerDown",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerUp",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerMove",
+                    "origin": "viewport",
+                    "x": $a,
+                    "y": $b,
+                    "duration": 100
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerMove",
+                    "origin": "viewport",
+                    "x": $x2,
+                    "y": $y2,
+                    "duration": 250
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerDown",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerUp",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 }
+            ]
+        }
+    ]
+}
+EOF
+curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions 1>/dev/null 2>&1
+sleep 1
+
+. ns export se_sid

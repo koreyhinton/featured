@@ -1,0 +1,61 @@
+#!/bin/bash
+
+. ns import ft_harness ft_start ft_end
+
+src="${BASH_SOURCE[0]}"
+src_full=$(realpath "$src")
+src_dir="${src_full%/*}"
+
+current_ord=$(cat "${src_dir}/${ft_harness}/sut.version")
+
+min_ord=
+max_ord=
+ft_start_ord=
+ft_end_ord=
+while IFS=',' read -r harness giturl gittag index version ordinal; do
+    if [[ "$harness" != "$ft_harness" || "harness" = "$harness" ]]; then
+        continue
+    fi
+
+    if [[ -n "$ft_start" && "$version" == "$ft_start" ]]; then
+        ft_start_ord=$ordinal 
+    fi
+
+    if [[ -n "$ft_end" && "$version" == "$ft_end" ]]; then
+        ft_end_ord=$ordinal
+    fi
+
+    if [[ -z "$min_ord" ]]; then
+        min_ord=$ordinal
+        if [[ -z "$ft_start" ]]; then
+            # an unset ft_start means the feature was present since first version
+            ft_start_ord=$ordinal
+        fi
+    fi
+    max_ord=$ordinal
+    if [[ -z "$ft_end" ]]; then
+        # an unset ft_end means the feature never ended (and is in the latest version)
+        ft_end_ord=$max_ord
+    fi
+done < "${src_dir}/${ft_harness}/versions.csv"
+
+if [[ -z "$min_ord" || -z "$max_ord" || -z "$ft_start_ord" || -z "$ft_end_ord" ]]; then
+    echo
+    echo "${min_ord}|${max_ord}|${ft_start_ord}|${ft_end_ord}"
+    ft_found=0
+    echo "Error: unable to find harness (${ft_harness}) versions (file: ${src_dir}/${ft_harness}/versions.csv)" 1>&2
+    exit 1
+elif [[ -z "$current_ord" ]]; then
+    ft_found=0
+    echo "Error: unable to find harness's (${ft_harness}) current version in file (file: ${src_dir}/${ft_harness}/sut.version)" 1>&2
+    exit 1
+fi
+
+if [[ $current_ord -ge $ft_start_ord && $current_ord -le $ft_end_ord ]]; then
+    ft_found=1
+else
+    ft_found=0
+fi
+
+. ns export ft_harness ft_start ft_end ft_found
+

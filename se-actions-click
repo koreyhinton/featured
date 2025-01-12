@@ -1,0 +1,54 @@
+#!/bin/bash
+
+. ns import se_sid se_x se_y
+
+x=$se_x
+y=$se_y
+# a=$((se_x-1))
+# b=$((se_y-1))
+a=$x
+b=$y
+
+base_url=http://localhost:4444/session
+
+read header1 <<EOF
+Content-Type: application/json; charset=utf-8
+EOF
+
+sleep 1
+read -r -d '' body <<EOF
+{
+    "actions": [
+        {
+            "type": "pointer",
+            "id": "mouse",
+            "parameters": {"pointerType": "mouse"},
+            "actions":[
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerMove",
+                    "origin": "viewport",
+                    "x": $x,
+                    "y": $y,
+                    "duration": 250
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerDown",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 },
+                {
+                    "type":"pointerUp",
+                    "button": 0
+                },
+                { "type": "pause", "duration": 100 }
+            ]
+        }
+    ]
+}
+EOF
+curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions 1>/dev/null 2>&1
+sleep 1
+
+. ns export se_sid
