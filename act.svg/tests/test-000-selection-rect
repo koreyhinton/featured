@@ -1,6 +1,8 @@
 #!/bin/bash
 
-. ns import ft_harness ft_index sel_sid
+. ns import ft_harness ft_index sel_sid ft_wait
+
+se_wait=$ft_wait
 
 # TEST ONE - TEST RECTANGLE CAN BE SELECTED
 test="RECTANGLE CAN BE SELECTED"
@@ -12,7 +14,7 @@ se_sid="$sel_sid"
 # rect mode
 se_keys="3"
 . ns run se-actions-keys
-sleep 1
+sleep "$se_wait"
 
 # draw rect
 se_x=771
@@ -42,14 +44,14 @@ se_y2=371
 # select mode
 se_keys="0"
 . ns run se-actions-keys
-sleep 1
+sleep "$se_wait"
 
 
 # act
 se_x=855
 se_y=275
 . ns run se-actions-click
-sleep 1
+sleep "$se_wait"
 
 se_xpath="//*[name()='rect']"
 . ns run se-element-xpath
@@ -60,7 +62,7 @@ se_attr="stroke"
 ft_start=
 ft_end=
 ft_assert=0
-echo "val: $se_val"
+# echo "val: $se_val"
 if [[ "$se_val" == "#CAFFB5" ]]; then
     ft_assert=1
 fi
@@ -73,4 +75,4 @@ if [[ $ft_assert -eq 1 ]]; then
 else
     echo "${test}...FAIL"
 fi
-. ns export ft_harness ft_index sel_sid
+. ns export ft_harness ft_index sel_sid ft_wait

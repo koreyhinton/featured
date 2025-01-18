@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ns import se_sid se_xpath
+. ns import se_sid se_xpath se_wait
 
 base_url=http://localhost:4444/session
 
@@ -24,5 +24,6 @@ else
     se_found=1
     se_eid=$(echo "$locate_response" | jq -r '.value["element-6066-11e4-a52e-4f735466cecf"]')
 fi
+sleep "$se_wait"
 
-. ns export se_found se_eid se_sid
+. ns export se_found se_eid se_sid se_wait

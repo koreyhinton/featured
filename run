@@ -4,12 +4,55 @@ src="${BASH_SOURCE[0]}"
 src_full=$(realpath "$src")
 src_dir="${src_full%/*}"
 
-. ns import ft_harness ft_snap
+. ns import ft_harness ft_snap ft_num ft_wait
 . ns require ft_version
 
 # SET DEFAULTS
 : ${ft_snap:=-1}
 : ${ft_harness:="act.svg"}
+: ${ft_num:=}
+: ${ft_wait:=0.4}
+
+# SYS VARS
+sys_action_wait=1
+
+# TEST NUMBER VALIDATION
+if [[ -n "$ft_num" && ! $ft_num =~ ^[0-9][0-9][0-9]$ ]]; then
+    echo "Error: when ft_num is set, the variable must be a 3-digit number from 000 to 999" 1>&2
+    exit 1
+fi
+
+# USER ACTION WAIT VALIDATION
+dec_b=0
+if [[ "$ft_wait" =~ ^[0-6]?[0-9]?\.[0-9]+$ || "$ft_wait" =~ ^[0-6]?[0-9]?\.$ ]]; then
+    # regex test cases: 1.0, 1., 0.1, .1
+    dec_b=1
+fi
+int_b=0
+if [[ "$ft_wait" =~ ^[0-9]+$ ]]; then
+    # regex test cases: 1, 2, 3
+    int_b=1
+fi
+if [[ -n "$ft_wait" ]]; then
+    if [[ "${int_b}${dec_b}" == "00" || "${int_b}${dec_b}" == "11" ]]; then
+        # integer OR decimal bit must be set
+        echo "Error: ft_wait must be a number n where 0.1 >= n <= 60." 1>&2
+        exit 1
+    fi
+    wait_whole_seconds=$(echo "$ft_wait" | cut -d '.' -f1)
+    if [[ -z "$wait_whole_seconds" ]]; then
+        wait_whole_seconds=0
+    fi
+    if [[ $wait_whole_seconds -gt 60 ]]; then
+            echo "Error: ft_wait waits after every user action and cannot be > 60 seconds" 1>&2
+        exit 1
+    fi
+    wait_fractional_seconds=$(echo "${ft_wait}.0" | cut -d '.' -f2)
+    if [[ $wait_whole_seconds -eq 0 && $wait_fractional_seconds -lt 1 ]]; then
+        echo "Error: ft_wait must be a number n where 0.1 >= n <= 60." 1>&2
+        exit 1
+    fi
+fi
 
 # VALIDATE HARNESS DIRECTORY
 harn_dir="${src_dir}/${ft_harness}"
@@ -82,7 +125,7 @@ echo "starting selenium server (port 4444), server log: ${sel_log_file}"
 # java -Dwebdriver.chrome.driver=${sel_chromedriver} -jar "${src_dir}/selenium-server-4.27.0.jar" standalone --host 0.0.0.0 --port 4444 1> "${sel_log_file}" 2>&1 &
 java -jar "${src_dir}/selenium-server-4.27.0.jar" standalone 1> "${sel_log_file}" 2>&1 &
 sel_pid=$!
-sleep 1
+sleep "$sys_action_wait"
 sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
   -d '{
   "capabilities": {
@@ -94,7 +137,7 @@ sel_sid=$(curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
 }
 ' http://localhost:4444/session 2>/dev/null | jq -r '.value.sessionId')
 unset sel_log_file sel_chromedriver
-sleep 1
+sleep "$sys_action_wait"
 
 curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
   -d '{
@@ -103,7 +146,7 @@ curl -s -X POST -H "Content-Type: application/json; charset=utf-8" \
       }' \
   http://localhost:4444/session/${sel_sid}/window/rect 2>/dev/null 1>&2
 
-sleep 1
+sleep "$sys_action_wait"
 
 
 # DETERMINE VERSION ORDINAL
@@ -159,7 +202,7 @@ if [[ $ft_snap -eq 0 ]]; then
     # run tests
     # echo "test ${version_index}. ${PWD}"
     ft_index=${index}
-    for t in ${src_dir}/act.svg/tests/test*
+    for t in `ls ${src_dir}/act.svg/tests/test-${ft_num}* | sort`
     do
         if [[ "$t" =~ '~' ]]; then
             continue
@@ -182,7 +225,7 @@ if [[ $ft_snap -eq 0 ]]; then
     # echo "${ft_version},$passed,$failed,$errors,$skipped" >> "$result_file"
     read -p "Test run has ended. Press enter to quit the session..." _
     curl -s -X DELETE http://localhost:4444/session/${sel_sid} 1>/dev/null 2>/dev/null
-    sleep 1
+    sleep "$sys_action_wait"
     exit 0
 fi
 
@@ -218,7 +261,7 @@ while IFS=',' read -r harness giturl gittag index version ordinal; do
 
     # run tests
     ft_index=${index}
-    for t in ${src_dir}/act.svg/tests/test*
+    for t in `ls ${src_dir}/act.svg/tests/test-${ft_num}* | sort`
     do
         if [[ "$t" =~ '~' ]]; then
             continue
@@ -248,4 +291,9 @@ done < "./versions.csv"
 
 read -p "Test run has ended. Press enter to quit the session..." _
 curl -s -X DELETE http://localhost:4444/session/${sel_sid} 1>/dev/null 2>/dev/null
-sleep 1
+sleep "$sys_action_wait"
+
+
+# exporting any test variable might be dangerous on a re-run
+# where a certain harness, version, or test might succeed
+# due to previous test run data that was forgotten to be re-specified
