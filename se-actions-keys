@@ -1,8 +1,10 @@
 #!/bin/bash
 
-. ns import se_sid se_eid se_keys
+. ns import se_sid se_eid se_keys se_wait
 
 base_url=http://localhost:4444/session
+
+user_action_wait_milliseconds=$(echo "${se_wait} * 1000" | bc | cut -d '.' -f1)
 
 read header1 <<EOF
 Content-Type: application/json; charset=utf-8
@@ -17,13 +19,13 @@ do
 {
     "type": "keyDown",
     "value": "$ch",
-    "duration": 500
+    "duration": ${user_action_wait_milliseconds}
 },
-{ "type": "pause", "duration": 100 },
+{ "type": "pause", "duration": ${user_action_wait_milliseconds} },
 {
     "type": "keyUp",
     "value": "$ch",
-    "duration": 500
+    "duration": ${user_action_wait_milliseconds}
 }
 EOF
 
@@ -44,7 +46,7 @@ read -r -d '' body <<EOF
             "id": "keyboard",
             "actions": [
                 ${key_actions},
-                { "type": "pause", "duration": 100 }
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} }
             ]
         }
     ]
@@ -52,5 +54,6 @@ read -r -d '' body <<EOF
 EOF
 # echo "$body"
 curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions 1>/dev/null 2>&1
+sleep "$se_wait"
 
-. ns export se_sid
+. ns export se_sid se_wait

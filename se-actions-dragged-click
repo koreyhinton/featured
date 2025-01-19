@@ -1,11 +1,13 @@
 #!/bin/bash
 
-. ns import se_sid se_eid se_x se_y se_x2 se_y2
+. ns import se_sid se_eid se_x se_y se_x2 se_y2 se_wait
 
 x=$se_x
 y=$se_y
 x2=$se_x2
 y2=$se_y2
+
+user_action_wait_milliseconds=$(echo "${se_wait} * 1000" | bc | cut -d '.' -f1)
 
 base_url=http://localhost:4444/session
 
@@ -19,7 +21,7 @@ EOF
 a=$((x-1))
 b=$((y-1))
 
-sleep 1
+sleep "$se_wait"
 read -r -d '' body <<EOF
 {
     "actions": [
@@ -28,48 +30,48 @@ read -r -d '' body <<EOF
             "id": "mouse",
             "parameters": {"pointerType": "mouse"},
             "actions":[
-                { "type": "pause", "duration": 100 },
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} },
                 {
                     "type":"pointerMove",
                     "origin": "viewport",
                     "x": $x,
                     "y": $y,
-                    "duration": 250
+                    "duration": ${user_action_wait_milliseconds}
                 },
-                { "type": "pause", "duration": 100 },
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} },
                 {
                     "type":"pointerDown",
                     "button": 0
                 },
-                { "type": "pause", "duration": 100 },
-                { "type": "pause", "duration": 100 },
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} },
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} },
                 {
                     "type":"pointerMove",
                     "origin": "viewport",
                     "x": $a,
                     "y": $b,
-                    "duration": 100
+                    "duration": ${user_action_wait_milliseconds}
                 },
-                { "type": "pause", "duration": 100 },
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} },
                 {
                     "type":"pointerMove",
                     "origin": "viewport",
                     "x": $x2,
                     "y": $y2,
-                    "duration": 250
+                    "duration": ${user_action_wait_milliseconds}
                 },
-                { "type": "pause", "duration": 100 },
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} },
                 {
                     "type":"pointerUp",
                     "button": 0
                 },
-                { "type": "pause", "duration": 100 }
+                { "type": "pause", "duration": ${user_action_wait_milliseconds} }
             ]
         }
     ]
 }
 EOF
 curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/actions 1>/dev/null 2>&1
-sleep 1
+sleep "$se_wait"
 
-. ns export se_sid
+. ns export se_sid se_wait

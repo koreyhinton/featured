@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ns import se_url se_sid
+. ns import se_url se_sid se_wait
 
 base_url=http://localhost:4444/session
 
@@ -14,5 +14,6 @@ read -r -d '' body <<EOF
 }
 EOF
 curl -s -H "$header1" -d "$body" ${base_url}/${se_sid}/url 1>/dev/null 2>&1
+sleep "$se_wait"
 
-. ns export se_sid
+. ns export se_sid se_wait

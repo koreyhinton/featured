@@ -1,18 +1,18 @@
 #!/bin/bash
 
-. ns import sel_sid ft_index
-
+. ns import sel_sid ft_index ft_wait
+se_wait="$ft_wait"
 # GO TO CURRENT CODE VERSION INDEX PAGE
 se_sid="$sel_sid"
 se_url="http://localhost:8000/${ft_index}"
 . ns run se-session-url
-sleep 1
+sleep "$ft_wait"
 
 # LOCATE TEXTAREA AND CLEAR IT
 se_xpath="//textarea[@id='svgFullTextarea']"
 . ns run se-element-xpath
 . ns run se-element-clear
-sleep 1
+sleep "$ft_wait"
 
 # SET (EMPTY OR RECT) SVG VALUE
 se_xpath="//textarea[@id='svgFullTextarea']"
@@ -32,25 +32,25 @@ EOF
     fi
     . ns run se-element-value
 )
-sleep 1
+sleep "$ft_wait"
 
 # force the on-change
 se_xpath="//svg"
 . ns run se-element-xpath
 . ns run se-element-click
-sleep 1
+sleep "$ft_wait"
 
 # LOCATE START BUTTON AND CLICK IT
 se_xpath="//button[@id='buttonStart']"
 . ns run se-element-xpath
 . ns run se-element-click
-sleep 1
+sleep "$ft_wait"
 
 # force the on-change
 se_xpath="//*[name()='svg']"  # /*[name()='rect']"
 . ns run se-element-xpath
 . ns run se-element-click
-sleep 1
+sleep "$ft_wait"
 
 # remove svg textarea focus:
 se_x=751
@@ -62,6 +62,6 @@ se_y2=201
 # select mode
 se_keys="0"
 . ns run se-actions-keys
-sleep 1
+sleep "$ft_wait"
 
-. ns export sel_sid ft_index
+. ns export sel_sid ft_index ft_wait

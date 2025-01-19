@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ns import se_sid se_eid se_attr
+. ns import se_sid se_eid se_attr se_wait
 
 base_url=http://localhost:4444/session
 
@@ -17,5 +17,6 @@ EOF
 # get request:
 get_response=$(curl -s -H "$header1" ${base_url}/${se_sid}/element/${se_eid}/attribute/${se_attr} 2>/dev/null)
 se_val=$(echo "$get_response" | jq -r '.value')
+sleep "$se_wait"
 
-. ns export se_sid se_val
+. ns export se_sid se_val se_wait
