@@ -16,7 +16,7 @@ se_xpath="//textarea[@id='svgFullTextarea']"
 se_xpath="//textarea[@id='svgFullTextarea']"
 . ns run se-element-xpath
 (
-    # put svg text in post-start
+    # put svg text in pre-start
     ft_start=
     ft_end=v0.1
     . ns run version-between
@@ -40,7 +40,7 @@ se_xpath="//button[@id='buttonStart']"
 . ns run se-element-click
 
 (
-    # put svg text in pre-start
+    # put svg text in post-start
     ft_start=v0.2
     ft_end=
     . ns run version-between
