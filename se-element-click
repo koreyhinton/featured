@@ -8,6 +8,8 @@ read header1 <<EOF
 Content-Type: application/json; charset=utf-8
 EOF
 
+sleep "$se_wait"
+
 curl -s -H "$header1" -d '{}' ${base_url}/${se_sid}/element/${se_eid}/click 1>/dev/null 2>&1
 sleep "$se_wait"
 

@@ -1,67 +1,74 @@
 #!/bin/bash
 
-. ns import sel_sid ft_index ft_wait
+. ns import sel_sid ft_index ft_wait stp_svg
 se_wait="$ft_wait"
 # GO TO CURRENT CODE VERSION INDEX PAGE
 se_sid="$sel_sid"
 se_url="http://localhost:8000/${ft_index}"
 . ns run se-session-url
-sleep "$ft_wait"
 
 # LOCATE TEXTAREA AND CLEAR IT
 se_xpath="//textarea[@id='svgFullTextarea']"
 . ns run se-element-xpath
 . ns run se-element-clear
-sleep "$ft_wait"
 
 # SET (EMPTY OR RECT) SVG VALUE
 se_xpath="//textarea[@id='svgFullTextarea']"
 . ns run se-element-xpath
 (
+    # put svg text in pre-start
     ft_start=
-    ft_end=devbox
+    ft_end=v0.1
     . ns run version-between
     if [[ $ft_found -eq 1 ]]; then
         read -r -d '' se_text <<EOF
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'><rect x='71' y='101' rx='0' ry='0' width='200' height='200' stroke='black' fill='transparent' stroke-width='1'/></svg>
+<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'>${stp_svg}</svg>
 EOF
-    else
-        read -r -d '' se_text <<EOF
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'></svg>
-EOF
+        . ns run se-element-value
     fi
-    . ns run se-element-value
 )
-sleep "$ft_wait"
+
 
 # force the on-change
 se_xpath="//svg"
 . ns run se-element-xpath
 . ns run se-element-click
-sleep "$ft_wait"
 
 # LOCATE START BUTTON AND CLICK IT
 se_xpath="//button[@id='buttonStart']"
 . ns run se-element-xpath
 . ns run se-element-click
-sleep "$ft_wait"
+
+(
+    # put svg text in post-start
+    ft_start=v0.2
+    ft_end=
+    . ns run version-between
+    if [[ $ft_found -eq 1 ]]; then
+        se_xpath="//textarea[@id='svgFullTextarea']"
+        . ns run se-element-xpath
+        # echo "$se_found"
+        read -r -d '' se_text <<EOF
+<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='750' height='750' viewBox='0,0,750,750'>${stp_svg}</svg>
+EOF
+        . ns run se-element-value # se-* scripts all end with: sleep $se_wait
+    fi
+)
 
 # force the on-change
 se_xpath="//*[name()='svg']"  # /*[name()='rect']"
 . ns run se-element-xpath
 . ns run se-element-click
-sleep "$ft_wait"
 
-# remove svg textarea focus:
-se_x=751
-se_y=151
-se_x2=801
-se_y2=201
+# remove svg textarea focus (no-op clicks on rhs of pane, draw/selections on lhs):
+se_x=1051
+se_y=451
+se_x2=1101
+se_y2=501
 . ns run se-actions-dragged-click
 
 # select mode
 se_keys="0"
 . ns run se-actions-keys
-sleep "$ft_wait"
 
 . ns export sel_sid ft_index ft_wait
