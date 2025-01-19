@@ -16,8 +16,7 @@ EOF
 a=$((x-1))
 b=$((y-1))
 
-user_action_wait_milliseconds=$(echo "${se_wait}" | cut -d '.' -f1)
-((user_action_wait_milliseconds*=1000))
+user_action_wait_milliseconds=$(echo "${se_wait} * 1000" | bc | cut -d '.' -f1)
 
 sleep "$se_wait"
 read -r -d '' body <<EOF

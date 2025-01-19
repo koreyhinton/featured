@@ -7,8 +7,7 @@ y=$se_y
 x2=$se_x2
 y2=$se_y2
 
-user_action_wait_milliseconds=$(echo "${se_wait}" | cut -d '.' -f1)
-((user_action_wait_milliseconds*=1000))
+user_action_wait_milliseconds=$(echo "${se_wait} * 1000" | bc | cut -d '.' -f1)
 
 base_url=http://localhost:4444/session
 

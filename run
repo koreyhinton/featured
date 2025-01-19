@@ -94,7 +94,30 @@ fi
 
 # PROMPT TO ENSURE SERVER IS RUNNING
 
-read -p "Confirm the Python web server is started. Press enter to continue..." _
+py_cmd0="# how to run python web server (in another shell tab)"
+py_cmd1="cd act.svg/sut"
+py_cmd2="python3 -m http.server"
+py_instructions=$'\n'$'\t'"$py_cmd0"$'\n'$'\t'"$py_cmd1"$'\n'$'\t'"$py_cmd2"$'\n'
+read -p "Confirm the Python web server is started.${py_instructions}Press enter to continue..." _
+
+# VALIDATE NO PRIOR SESSIONS ARE RUNNING AND PROMPT USER TO CLOSE SESSIONS
+# this should avoid flakiness noted sessions were left running
+# (and possibly a machine restart happened) and it needs to try
+# once and fail to connect before it decides it can do a new session
+
+is_phantom=$(curl -s -H "Content-Type: application/json; charset=utf-8" http://localhost:4444/status 2>/dev/null | grep sessionId | wc -l)
+
+if [[ $is_phantom -gt 0 ]]; then
+    phant_info1="A prior (potentially phantom) selenium session was detected."
+    phant_info2="To ensure a stable run and if not needed, it is recommended to close the session."
+    phant_action1="1. Find the session number here: http://localhost:4444/ui/#/sessions"
+    phant_action2="2. Set sessionId variable (in another shell session tab)"
+    phant_action3="3. curl -s -X DELETE http://localhost:4444/session/\${sessionId}"
+    phant_instructions="$phant_info1"$'\n'"$phant_info2"$'\n'$'\t'"$phant_action1"$'\n'$'\t'
+    phant_instructions="$phant_instructions"$'\n'$'\t'"$phant_action2"$'\n'$'\t'"$phant_action3"
+    phant_instructions="$phant_instructions"$'\n'"Confirm prior session is closed and then"
+    read -p "${phant_instructions} press enter to continue..." _
+fi
 
 # CHROME DRIVER
 # uncomment to try out the chrome driver directly

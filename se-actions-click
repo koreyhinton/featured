@@ -17,8 +17,7 @@ EOF
 
 sleep "$se_wait"
 
-user_action_wait_milliseconds=$(echo "${se_wait}" | cut -d '.' -f1)
-((user_action_wait_milliseconds*=1000))
+user_action_wait_milliseconds=$(echo "${se_wait} * 1000" | bc | cut -d '.' -f1)
 read -r -d '' body <<EOF
 {
     "actions": [

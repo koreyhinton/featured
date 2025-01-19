@@ -4,8 +4,7 @@
 
 base_url=http://localhost:4444/session
 
-user_action_wait_milliseconds=$(echo "${se_wait}" | cut -d '.' -f1)
-((user_action_wait_milliseconds*=1000))
+user_action_wait_milliseconds=$(echo "${se_wait} * 1000" | bc | cut -d '.' -f1)
 
 read header1 <<EOF
 Content-Type: application/json; charset=utf-8
