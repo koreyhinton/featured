@@ -10,6 +10,8 @@ read header1 <<EOF
 Content-Type: application/json; charset=utf-8
 EOF
 
+sleep "$se_wait"
+
 key_actions=
 let n=${#se_keys}-1;
 for i in $(seq 0 $n)

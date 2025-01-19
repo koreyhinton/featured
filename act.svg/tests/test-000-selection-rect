@@ -7,39 +7,13 @@ se_wait=$ft_wait
 # TEST ONE - TEST RECTANGLE CAN BE SELECTED
 test="RECTANGLE CAN BE SELECTED"
 
+# must use single quotes (until setup script is updated)
+read -r -d '' stp_svg <<EOF
+<rect rx='0' ry='0' x='24' y='86' width='197' height='197' stroke='black' fill='transparent' stroke-width='1'/>
+EOF
 . ns run setup
 
 se_sid="$sel_sid"
-
-# rect mode
-se_keys="3"
-. ns run se-actions-keys
-sleep "$se_wait"
-
-# draw rect
-se_x=771
-se_y=171
-se_x2=971
-se_y2=371
-(
-    ft_start=
-    ft_end=v0.0
-    . ns run version-between
-    if [[ $ft_found -gt 0 ]]; then
-        # two-click draw
-        ft_start=v0.0
-        ft_end=v0.0
-        . ns run version-between
-        if [[ $ft_found -gt 0 ]]; then
-            # only click-draw rect if version is >= v0.0
-            # as initial (devbox) version only supports selection
-            . ns run se-actions-diagonal-clicks
-        fi
-    else
-        # click-and-drag draw
-        . ns run se-actions-dragged-click
-    fi
-)
 
 # select mode
 se_keys="0"
@@ -51,7 +25,6 @@ sleep "$se_wait"
 se_x=855
 se_y=275
 . ns run se-actions-click
-sleep "$se_wait"
 
 se_xpath="//*[name()='rect']"
 . ns run se-element-xpath
