@@ -1,0 +1,18 @@
+. ns import ft_sut_v ft_status ft_assert ft_test
+
+# featured print
+results=(FAIL PASS)
+dot_len=79  # fill the standard terminal width
+dots="..............................................................................." # 79
+lead="${ft_sut_v} TEST (${ft_status}) ${ft_test}"
+trail="${results[$ft_assert]}"
+lead_len=${#lead}
+trail_len=${#trail}
+((dot_len-=lead_len))
+((dot_len-=trail_len))
+dots="${dots:0:$dot_len}"
+
+echo "${lead}${dots}${trail}"
+
+# don't export anything, since printing is the final part of a test,
+# and the next test should be looking at new values
