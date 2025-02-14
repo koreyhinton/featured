@@ -1,0 +1,58 @@
+#!/bin/bash
+
+. ns import ft_harness ft_index sel_sid ft_wait
+
+se_wait=$ft_wait
+
+data_index=0
+
+# must use single quotes in svg (until setup script is updated)
+while IFS=$'\n' read -r stp_svg; do
+    
+    shape=$(echo "$stp_svg" | cut -d '<' -f2 | cut -d ' ' -f1)
+    shape_uc=$(echo "$shape" | tr '[:lower:]' '[:upper:]')
+
+    . ns run setup
+
+    # FEATURED TEST
+    ft_test="000[${data_index}] SELECTION BY SINGLE CLICK[${shape_uc}]"
+    ((data_index++))
+
+    se_sid="$sel_sid"
+
+    # select mode
+    se_keys="0"
+    . ns run se-actions-keys
+    sleep "$se_wait"
+
+
+    # act
+    se_x=855
+    se_y=275
+    . ns run se-actions-click
+
+    se_xpath="//*[name()='${shape}']"
+    . ns run se-element-xpath
+    se_attr="stroke"
+    . ns run se-element-attribute
+
+    # VERSION-ASSERT
+    ft_start=
+    ft_end=
+    ft_assert=0
+    # echo "val: $se_val"
+    if [[ "$se_val" == "#CAFFB5" ]]; then
+        ft_assert=1
+    fi
+    . ns run version-assert
+    # FEATURED PRINT
+    . ns run featured
+done << EOF
+    <rect rx='0' ry='0' x='24' y='86' width='197' height='197' stroke='black' fill='transparent' stroke-width='1'/>
+    <rect rx='10' ry='10' x='24' y='86' width='197' height='197' stroke='black' fill='transparent' stroke-width='1'/>
+    <line x1='221' y1='283' x2='24' y2='86' stroke='black' stroke-width='1'/>
+    <line x1='24' y1='86' x2='221' y2='283' stroke='black' stroke-width='3'/>
+    <polyline points='27 85 224 288 224.15075372999917 277.94975133338914 224 288 213.94975133338917 287.84924627000083' stroke='black' fill='transparent' stroke-width='1'/>
+EOF
+
+. ns export ft_harness ft_index sel_sid ft_wait

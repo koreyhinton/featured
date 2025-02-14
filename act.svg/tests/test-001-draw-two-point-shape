@@ -1,0 +1,69 @@
+#!/bin/bash
+
+. ns import ft_harness ft_index sel_sid ft_wait
+
+se_wait=$ft_wait
+
+modes=(1 2 3 4 8)
+shapes=(line polyline rect rect line)
+
+i=0
+while [[ $i -lt ${#modes[@]} ]]
+do
+    mode=${modes[$i]}
+    shape=${shapes[$i]}
+    shape_uc=$(echo "$shape" | tr '[:lower:]' '[:upper:]')
+
+    stp_svg=
+    . ns run setup
+
+    # FEATURED TEST
+    ft_test="001[${i}] DRAW TWO-POINT SHAPE[${shape_uc}]"
+
+    se_sid="$sel_sid"
+
+    # e.g., rect mode
+    se_keys="$mode"
+    . ns run se-actions-keys
+    sleep "$se_wait"
+
+    # draw e.g., rect
+    se_x=771
+    se_y=171
+    se_x2=971
+    se_y2=371
+    (
+        ft_start=
+        ft_end=v0.0
+        . ns run version-between
+        if [[ $ft_found -gt 0 ]]; then
+            # two-click draw
+            ft_start=v0.0
+            ft_end=v0.0
+            . ns run version-between
+            if [[ $ft_found -gt 0 ]]; then
+                # only click-draw rect if version is >= v0.0
+                # as initial (devbox) version only supports selection
+                . ns run se-actions-diagonal-clicks
+            fi
+        else
+            # click-and-drag draw
+            . ns run se-actions-dragged-click
+        fi
+    )
+
+    se_xpath="//*[name()='${shape}']"
+    . ns run se-element-xpath
+
+    # VERSION-ASSERT
+    ft_assert=$se_found
+    ft_start=v0.0
+    ft_end=
+    . ns run version-assert
+    # FEATURED PRINT
+    . ns run featured
+
+    ((i++))
+done
+
+. ns export ft_harness ft_index sel_sid ft_wait

@@ -48,6 +48,17 @@ cd act.svg/sut
 python3 -m http.server
 ```
 
+### run a particular test number
+
+ft_num ranging between 000 and 999\*
+
+\*Note: use data-driven tests (multi-rows of input) to extend beyond 1,000 test limit
+
+```sh
+export NS_PATH="${PWD}:${PWD}/act.svg/tests:${NS_PATH}"
+ft_version=v0.4 ft_snap=0 ft_num=000; . ns run run
+```
+
 ## selenium server notes
 
 When sending requests, the api gives vague errors if you don't do the following:

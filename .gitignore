@@ -40,3 +40,9 @@ act.svg/sut
 act.svg/sut.version
 act.svg/tests_output/
 act.svg/logs/
+
+# logs
+logs/
+
+# selenium jar file dependency
+selenium-server-4.27.0.jar
